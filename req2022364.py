@@ -10,7 +10,7 @@ import main_functions as mf
 from answer import Answer
 from connection import Connection
 from email_smtp import EmailSMTP
-from workflow import WorkFlow
+from work_flow import WorkFlow
 
 
 class Req2022364:
@@ -43,7 +43,7 @@ class Req2022364:
             # Write on the Log file.
             self._write_log_file(message="Application has been launched")
             self._write_log_file(message=folder.get_message())
-            # Start function to connect to DB
+            # Start function to connect to DB and get data
             data = self._get_data()
             # Start function to get request from workflow
             request = self._get_request(data=data)
@@ -87,20 +87,21 @@ class Req2022364:
 
     def _get_body(self, data, request):
         """
-        Esta función crea un documento HTML para envíar en el cuerpo de un email.
+        Esta función crea un archivo tipo HTML para enviar en el cuerpo de un email.
 
-        Args:
-            **data (list):** Los datos para construir la tabla HTML.
+        Params:
+            **data (list):** Los datos obtenidos de la DB.
+            **request (list):** Repuesta del workflow.
 
         Returns
-        -------
-        Answer : Class
-            **answer (Class):** Devuelve un estado, mensaje y datos (String) de la función.
+            **html (String):** Devuelve el cuerpo en HTML para el email.
 
         """
 
         # process variable
         process = inspect.stack()[0][3]
+        # Write on the Log file.
+        self._write_log_file(message="Building html body")
         html = """
                 <html>
                     <head>
@@ -147,6 +148,13 @@ class Req2022364:
         return html
 
     def _get_data(self):
+        """
+        Obtiene la data desde la base de datos.
+
+        Returns
+            **queries (List):** Devuelve una lista con diccionarios por fila encontrada.
+
+        """
         # Variable process
         process = inspect.stack()[0][3]
         # Write on the Log file.
@@ -157,7 +165,9 @@ class Req2022364:
         try:
             # Validate setup status
             if self.__data["CONNECTION"] == 1:
+                # Get data
                 queries = connection.read_data(query=self.__data["QUERY"]).get_data()
+                # Write on the Log file.
                 self._write_log_file("Data obtained from " + self.__data["QUERY"])
             else:
                 # Write on the Log file.
@@ -168,7 +178,6 @@ class Req2022364:
         finally:
             # Write on the Log file.
             self._write_log_file(message="End process " + process)
-
         # Return answer object.
         return queries
 
@@ -179,12 +188,19 @@ class Req2022364:
         self._write_log_file(message="Start process " + process)
         # Invoke class WorkFlow.
         workflow = WorkFlow()
+        # responses variable
         responses = []
         try:
             # Validate setup status
             if self.__data["WORKFLOW"] == 1:
+                # Loop on data dictionary
                 for item in data:
-                    responses.append(workflow.get_response(item).get_message())
+                    # Fill text variable
+                    text = workflow.get_response(item).get_message()
+                    # Fill responses list to return
+                    responses.append(text)
+                    # Write on the Log file.
+                    self._write_log_file(message="ID: " + str(item["TISONID"]) + " - " + text)
             else:
                 # Write on the Log file.
                 self._write_log_file(message="WORKFLOW in SETUP is not enabled")
@@ -194,7 +210,6 @@ class Req2022364:
         finally:
             # Write on the Log file.
             self._write_log_file(message="End process " + process)
-
         # Return answer object.
         return responses
 
@@ -260,8 +275,9 @@ class Req2022364:
         try:
             # Validate setup status
             if self.__data["EMAIL"] == 1:
-                # Send email and Write on the Log file.
+                # Get body
                 body = self._get_body(data=data, request=request)
+                # Send email and Write on the Log file.
                 self._write_log_file(message=email.send_email(body=body, html=True).get_message())
             else:
                 # Write on the Log file.

@@ -1,6 +1,11 @@
-import inspect
-import urllib.parse
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jun 26 08:30:00 2022
 
+@author: Jhonatan Martínez
+"""
+
+import inspect
 import requests
 import main_functions as mf
 from answer import Answer
@@ -38,9 +43,12 @@ class WorkFlow:
         path = mf.get_current_path().get_data()
         try:
             # Validate parameters
-            if self.__data["PARAMETERS"] != "" and params is not None:
+            if self.__data["PARAMETERS"] != "":
                 # Organize parameters
                 params = self._organize_parameters(params=params)
+            else:
+                # Set none in params
+                params = None
             # Execute request
             response = requests.get(url=self.__data["URL"],
                                     params=params,
@@ -49,7 +57,7 @@ class WorkFlow:
                                     cert=path + self.__data["CERT"] if self.__data["CERT"] != "" else None)
             # Fill answer object with status, message and data.
             answer.load(status=True,
-                        message=response.text,
+                        message="status:" + str(response.status_code) + " - " + response.text,
                         data=response)
         except Exception as exc:
             # Fill answer object with status and error message.
