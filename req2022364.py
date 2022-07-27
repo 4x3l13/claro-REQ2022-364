@@ -15,7 +15,7 @@ from work_flow import WorkFlow
 
 class Req2022364:
     """
-     Esta es la clase principal de la aplicación, trabaja en BackEnd, no posee FrontEnd.\n
+    Esta es la clase principal de la aplicación, trabaja en BackEnd, no posee FrontEnd.\n
     En el archivo de configuración **config.json** están las diferentes secciones
     para las configuraciones de conexiones.\n
     ¿Qué realiza la aplicación?:\n
@@ -62,6 +62,8 @@ class Req2022364:
 
         """
 
+        # process variable
+        process = inspect.stack()[0][3]
         # Invoke class Answer.
         answer = Answer()
         try:
@@ -75,19 +77,16 @@ class Req2022364:
             answer.load(status=True,
                         message="Folders are Ok")
         except Exception as exc:
-            # Fill variable error
-            error_message = self.__this + inspect.stack()[0][3] + ': ' + str(exc)
-            # Show error message in console
-            print(error_message)
             # Fill answer object with status and error message.
             answer.load(status=False,
-                        message=error_message)
+                        message=self._print_error(process=process,
+                                                  message=exc))
         # Return answer object.
         return answer
 
     def _get_body(self, data, request):
         """
-        Esta función crea un archivo tipo HTML para enviar en el cuerpo de un email.
+        Esta función crea un string tipo HTML para enviar en el cuerpo de un email.
 
         Params:
             **data (list):** Los datos obtenidos de la DB.
@@ -161,14 +160,24 @@ class Req2022364:
         self._write_log_file(message="Start process " + process)
         # Invoke class Connection.
         connection = Connection()
+        # queries variable
         queries = None
         try:
             # Validate setup status
             if self.__data["CONNECTION"] == 1:
-                # Get data
-                queries = connection.read_data(query=self.__data["QUERY"]).get_data()
-                # Write on the Log file.
-                self._write_log_file("Data obtained from " + self.__data["QUERY"])
+                # Execute query
+                data = connection.read_data(query=self.__data["QUERY"])
+                # Validate status data
+                if data.get_status():
+                    # Write on the Log file.
+                    self._write_log_file(data.get_message() + " from " + self.__data["QUERY"])
+                    # Get data
+                    queries = data.get_data()
+                else:
+                    # Write on the Log file.
+                    self._write_log_file(data.get_message())
+                    # Send email
+                    self._send_email(data=data.get_message(), request=None)
             else:
                 # Write on the Log file.
                 self._write_log_file(message="CONNECTION in SETUP is not enabled")
@@ -178,10 +187,18 @@ class Req2022364:
         finally:
             # Write on the Log file.
             self._write_log_file(message="End process " + process)
-        # Return answer object.
+        # Return queries list.
         return queries
 
     def _get_request(self, data):
+        """
+        Realiza la petición al endpoint (workflow) y obtiene su respuesta.
+
+        Returns
+            **responses (List):** Devuelve una lista con los mensajes retornados del endpoint.
+
+        """
+
         # Variable process
         process = inspect.stack()[0][3]
         # Write on the Log file.
@@ -210,7 +227,7 @@ class Req2022364:
         finally:
             # Write on the Log file.
             self._write_log_file(message="End process " + process)
-        # Return answer object.
+        # Return responses list.
         return responses
 
     def _print_error(self, process, message):
@@ -275,8 +292,15 @@ class Req2022364:
         try:
             # Validate setup status
             if self.__data["EMAIL"] == 1:
-                # Get body
-                body = self._get_body(data=data, request=request)
+                # body variable
+                body = ""
+                # Validate data in request param
+                if request is not None:
+                    # Get body
+                    body = self._get_body(data=data, request=request)
+                else:
+                    # Get body
+                    body = data
                 # Send email and Write on the Log file.
                 self._write_log_file(message=email.send_email(body=body, html=True).get_message())
             else:

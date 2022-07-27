@@ -37,7 +37,6 @@ class EmailSMTP:
         """
         self.__this = self.__class__.__name__
         self.__data = self._read_setup()
-        self.__email = EmailMessage()
         self.__connection = None
 
     def _close_connection(self):

@@ -12,6 +12,9 @@ from answer import Answer
 
 
 class WorkFlow:
+    """
+    Permite la conexión a un endpoint por medio del paquete requests
+    """
 
     def __init__(self):
         """
