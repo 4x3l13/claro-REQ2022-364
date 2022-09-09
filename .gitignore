@@ -1,6 +1,8 @@
 config.json
 logo.ico
+NOW_core.crt
 req2022364.spec
+requirements.txt
 build/
 dist/
 oracle/

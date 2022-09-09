@@ -1,0 +1,34 @@
+{
+    "CONNECTION" : {
+        "TYPE" : "ORACLE",
+        "DRIVER" : "\\oracle\\instantclient_21_6",
+        "SERVER" : "10.67.51.135:1521",
+        "DATABASE" : "domquality",
+        "USER" : "NOCPERF",
+        "PASSWORD" : "comcel2011"
+    },
+    
+    "EMAILSMTP" : {
+        "SERVER" : "172.22.85.125",
+        "PORT" : "",
+        "FROM" : "automatismo_GSGR@claro.com.co",
+        "PASSWORD" : "",
+        "TO" : "jhonatanama@algartech.com",
+        "SUBJECT" : "Alerta REQ2022-364"
+    },
+
+    "WORKFLOW": {
+        "URL" : "http://workflow.now.comcel.com/nowCore/message",
+        "PARAMETERS": ["sys", "nme", "snd", "val", "typ", "tisonid", "subtree"],
+        "VERIFY" : 1,
+        "CERT" : "\\NOW_core.crt",
+        "HEADERS" : {"Content-Type": "application/json"}
+    },
+
+    "REQ2022364": {
+        "CONNECTION" : 1,
+        "WORKFLOW": 1,
+        "EMAIL": 1,
+        "QUERY": "SELECT 'rc' || o.nms_id sys, t.dn snd,accion nme,substr(description,-1,1) val,'Message' typ, t.tisonid, decode(o.object_class,4,0,813,0,3130,0,1) subtree, o.name SECTOR from maximo.TISON@MAXIMUN.COMCEL.COM.CO t, inh_objects o where accion like '%START_MM_SITE%' and o.dn= t.dn and estcomando is null and tisonid=2000030"
+    }
+}

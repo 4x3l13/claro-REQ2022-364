@@ -89,7 +89,7 @@ class WorkFlow:
         try:
             # loop on parameters
             for item in self.__data["PARAMETERS"]:
-                organized_parameters[str(item).lower()] = str(params[str(item).upper()]).replace("%", "$")
+                organized_parameters[str(item).lower()] = params[str(item).upper()]
         except Exception as exc:
             # Show error message in console.
             self._print_error(process=process,

@@ -30,7 +30,6 @@ class Req2022364:
     def __init__(self):
         self.__this = self.__class__.__name__
         self.__data = self._read_setup()
-        self._print_error(process="init", message=self.__data)
         self._load()
 
     def _load(self):
@@ -157,10 +156,10 @@ class Req2022364:
         """
         # Variable process
         process = inspect.stack()[0][3]
-        # Invoke class Connection.
-        connection = Connection()
         # Write on the Log file.
         self._write_log_file(message="Start process " + process)
+        # Invoke class Connection.
+        connection = Connection()
         # queries variable
         queries = None
         try:
